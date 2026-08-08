@@ -1,0 +1,2102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Faculty Profile Manager</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #172536;
+            --muted: #64748b;
+            --navy: #13354b;
+            --teal: #087e8b;
+            --paper: #f4f1e9;
+            --line: #dce2df;
+            --gold: #d99c31;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "DM Sans", sans-serif;
+            color: var(--ink);
+            background: #f8fafc;
+        }
+
+        .display-font {
+            font-family: "Fraunces", serif;
+        }
+
+        .top-nav {
+            background: rgba(19, 53, 75, 0.98);
+        }
+
+        .nav-tab {
+            color: #cbdbe0;
+            border-bottom: 3px solid transparent;
+            transition: 0.2s ease;
+        }
+
+        .nav-tab:hover,
+        .nav-tab.active {
+            color: white;
+            border-bottom-color: #f1b94e;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+            animation: rise 0.35s ease both;
+        }
+
+        .profile-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 30px rgba(19, 53, 75, 0.12);
+        }
+
+        .profile-card.selected {
+            outline: 2px solid var(--teal);
+            outline-offset: 2px;
+        }
+
+        .qual-pill {
+            background: #e1f2ee;
+            color: #056b72;
+        }
+
+        .metric-bar {
+            background: linear-gradient(90deg, #087e8b, #4ab4ab);
+        }
+
+        .metric-bar.gold {
+            background: linear-gradient(90deg, #c9851d, #e8bb61);
+        }
+
+        .metric-bar.navy {
+            background: linear-gradient(90deg, #13354b, #416a7e);
+        }
+
+        .metric-bar.rose {
+            background: linear-gradient(90deg, #aa5368, #d98b98);
+        }
+
+        .canva-button {
+            background: #087e8b;
+            color: white;
+            transition: 0.2s;
+        }
+
+        .canva-button:hover {
+            background: #066b75;
+        }
+
+        .focus-ring:focus {
+            outline: 3px solid rgba(8, 126, 139, 0.35);
+            outline-offset: 2px;
+        }
+
+        .er-node {
+            border: 2px solid #bfd2d4;
+            background: white;
+        }
+
+        .status-message {
+            display: none;
+        }
+
+        .status-message.show {
+            display: flex;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .nav-wrap {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="min-h-screen">
+
+    <!-- HEADER -->
+    <header class="top-nav w-full shadow-lg">
+        <div class="max-w-7xl mx-auto px-5 sm:px-8">
+
+            <div class="py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+                <div>
+                    <p class="text-xs uppercase tracking-[0.2em] text-teal-200 font-semibold">
+                        Academic Administration
+                    </p>
+
+                    <h1 class="display-font text-white text-3xl leading-tight">
+                        Faculty Profile 
+                    </h1>
+                </div>
+
+                <div class="flex items-center gap-2 text-sm text-slate-200">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-amber-300"></i>
+                    <span>Faculty Records</span>
+                </div>
+
+            </div>
+
+            <!-- NAVIGATION -->
+            <nav class="nav-wrap flex gap-6" aria-label="Faculty manager sections">
+
+                <button
+                    class="nav-tab active focus-ring py-3 text-sm font-semibold whitespace-nowrap"
+                    data-view="directory">
+                    Faculty Directory
+                </button>
+
+                <button
+                    class="nav-tab focus-ring py-3 text-sm font-semibold whitespace-nowrap"
+                    data-view="form">
+                    Add Faculty
+                </button>
+
+                <button
+                    class="nav-tab focus-ring py-3 text-sm font-semibold whitespace-nowrap"
+                    data-view="reports">
+                    Reports
+                </button>
+
+                <button
+                    class="nav-tab focus-ring py-3 text-sm font-semibold whitespace-nowrap"
+                    data-view="er-design">
+                    ER Design
+                </button>
+
+            </nav>
+        </div>
+    </header>
+
+
+    <!-- MAIN -->
+    <main class="w-full max-w-7xl mx-auto px-5 sm:px-8 py-8">
+
+        <!-- STATUS -->
+        <div
+            id="status-message"
+            class="status-message mb-6 items-center gap-3 rounded-xl border px-4 py-3 text-sm"
+            role="status">
+        </div>
+
+
+        <!-- ================= DIRECTORY ================= -->
+
+        <section id="directory-view" class="view active">
+
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-7">
+
+                <div>
+
+                    <p class="uppercase tracking-[0.16em] text-xs font-bold text-teal-700">
+                        Faculty Directory
+                    </p>
+
+                    <h2 class="display-font text-slate-900 text-3xl mt-1">
+                        Academic Experts
+                    </h2>
+
+                    <p class="text-slate-600 mt-2 max-w-2xl">
+                        Search, filter and manage faculty profiles and academic information.
+                    </p>
+
+                </div>
+
+                <button
+                    id="open-add"
+                    class="canva-button focus-ring inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-bold shadow-sm">
+
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    Add Faculty
+
+                </button>
+
+            </div>
+
+
+            <!-- FILTER PANEL -->
+
+            <section class="bg-white rounded-2xl p-5 mb-7 border border-slate-200 shadow-sm">
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    <div>
+
+                        <label
+                            class="block text-sm font-semibold mb-2"
+                            for="faculty-search">
+                            Search Faculty
+                        </label>
+
+                        <div class="relative">
+
+                            <i
+                                data-lucide="search"
+                                class="absolute left-3 top-3 w-4 h-4 text-slate-400">
+                            </i>
+
+                            <input
+                                id="faculty-search"
+                                class="focus-ring w-full rounded-xl border border-slate-300 py-2.5 pl-10 pr-3 bg-white"
+                                type="search"
+                                placeholder="Search by name, department...">
+
+                        </div>
+
+                    </div>
+
+
+                    <div>
+
+                        <label
+                            class="block text-sm font-semibold mb-2"
+                            for="department-filter">
+                            Department
+                        </label>
+
+                        <select
+                            id="department-filter"
+                            class="focus-ring w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5">
+
+                            <option value="">
+                                All departments
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div>
+
+                        <label
+                            class="block text-sm font-semibold mb-2"
+                            for="designation-filter">
+                            Designation
+                        </label>
+
+                        <select
+                            id="designation-filter"
+                            class="focus-ring w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5">
+
+                            <option value="">
+                                All designations
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <div class="flex items-center justify-between mb-4">
+
+                <p
+                    id="faculty-count"
+                    class="text-sm font-semibold text-slate-500">
+                </p>
+
+                <span class="text-xs text-slate-400">
+                    Select a profile to view academic details
+                </span>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-7">
+
+                <!-- FACULTY LIST -->
+
+                <div
+                    id="faculty-list"
+                    class="xl:col-span-2 grid sm:grid-cols-2 gap-4">
+                </div>
+
+
+                <!-- PROFILE PANEL -->
+
+                <aside
+                    class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-fit xl:sticky xl:top-5">
+
+                    <div id="profile-empty">
+
+                        <div class="w-11 h-11 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center mb-4">
+
+                            <i data-lucide="contact-round" class="w-5 h-5"></i>
+
+                        </div>
+
+                        <h2 class="display-font text-slate-900 text-2xl">
+                            Faculty Profile
+                        </h2>
+
+                        <p class="text-slate-600 mt-2 leading-relaxed">
+                            Select a faculty member from the directory to view their academic profile.
+                        </p>
+
+                    </div>
+
+
+                    <div id="profile-detail" class="hidden">
+
+                        <div class="flex justify-between gap-3">
+
+                            <div>
+
+                                <p class="text-xs uppercase tracking-[.15em] font-bold text-teal-700">
+                                    Selected Faculty
+                                </p>
+
+                                <h2
+                                    id="profile-name"
+                                    class="display-font text-2xl text-slate-900 mt-1">
+                                </h2>
+
+                                <p
+                                    id="profile-role"
+                                    class="text-slate-600 mt-1">
+                                </p>
+
+                            </div>
+
+
+                            <button
+                                id="edit-selected"
+                                class="focus-ring rounded-lg p-2 text-teal-700 hover:bg-teal-50"
+                                title="Edit Faculty">
+
+                                <i data-lucide="pencil" class="w-5 h-5"></i>
+
+                            </button>
+
+                        </div>
+
+
+                        <div class="border-t border-slate-200 my-5"></div>
+
+
+                        <dl class="space-y-4 text-sm">
+
+                            <div>
+                                <dt class="text-slate-400">
+                                    Department
+                                </dt>
+
+                                <dd
+                                    id="profile-department"
+                                    class="font-semibold mt-1">
+                                </dd>
+                            </div>
+
+
+                            <div>
+                                <dt class="text-slate-400">
+                                    Specialisation
+                                </dt>
+
+                                <dd
+                                    id="profile-specialization"
+                                    class="font-semibold mt-1">
+                                </dd>
+                            </div>
+
+
+                            <div>
+                                <dt class="text-slate-400">
+                                    Qualifications
+                                </dt>
+
+                                <dd
+                                    id="profile-qualifications"
+                                    class="flex flex-wrap gap-2 mt-2">
+                                </dd>
+                            </div>
+
+
+                            <div class="grid grid-cols-2 gap-4">
+
+                                <div>
+
+                                    <dt class="text-slate-400">
+                                        Joined
+                                    </dt>
+
+                                    <dd
+                                        id="profile-joining"
+                                        class="font-semibold mt-1">
+                                    </dd>
+
+                                </div>
+
+
+                                <div>
+
+                                    <dt class="text-slate-400">
+                                        Experience
+                                    </dt>
+
+                                    <dd
+                                        id="profile-experience"
+                                        class="font-semibold mt-1">
+                                    </dd>
+
+                                </div>
+
+                            </div>
+
+
+                            <div>
+
+                                <dt class="text-slate-400">
+                                    Contact
+                                </dt>
+
+                                <dd
+                                    id="profile-contact"
+                                    class="font-semibold mt-1 break-all">
+                                </dd>
+
+                            </div>
+
+                        </dl>
+
+                    </div>
+
+                </aside>
+
+            </div>
+
+
+            <p
+                id="directory-empty"
+                class="hidden py-12 text-center text-slate-500">
+                No faculty members match the selected filters.
+            </p>
+
+        </section>
+
+
+
+        <!-- ================= ADD / EDIT FORM ================= -->
+
+        <section id="form-view" class="view">
+
+            <div class="max-w-4xl">
+
+                <p class="uppercase tracking-[0.16em] text-xs font-bold text-teal-700">
+                    Faculty Management
+                </p>
+
+                <h2
+                    id="form-title"
+                    class="display-font text-slate-900 text-3xl mt-1">
+                    Add Faculty Profile
+                </h2>
+
+                <p class="text-slate-600 mt-2">
+                    Enter the faculty member's academic and contact information.
+                </p>
+
+
+                <form
+                    id="faculty-form"
+                    class="bg-white mt-7 rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-7">
+
+                    <div class="grid sm:grid-cols-2 gap-5">
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-semibold mb-2"
+                                for="name">
+                                Full Name
+                            </label>
+
+                            <input
+                                id="name"
+                                name="name"
+                                required
+                                class="focus-ring w-full rounded-xl border border-slate-300 px-3 py-2.5"
+                                type="text"
+                                placeholder="Enter full name">
+
+                        </div>
+
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-semibold mb-2"
+                                for="department">
+                                Department
+                            </label>
+
+                            
+                                <select id="department-filter" class="focus-ring w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5">
+                                <option value="">All departments</option>
+                                <option value="Information Science and Engineering">Information Science and Engineering</option>
+                                <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                                <option value="Electronics and Communication">Electronics and Communication</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                <option value="Civil Engineering">Civil Engineering</option>
+                                </select>
+
+
+
+                        </div>
+
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-semibold mb-2"
+                                for="designation">
+                                Designation
+                            </label>
+
+                           <select id="designation-filter" class="focus-ring w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5">
+                           <option value="">All designations</option>
+                           <option value="Professor">Professor</option>
+                           <option value="Associate Professor">Associate Professor</option>
+                           <option value="Assistant Professor">Assistant Professor</option>
+                           <option value="Lecturer">Lecturer</option>
+                           <option value="HOD">HOD</option>
+                           </select>
+                        </div>
+
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-semibold mb-2"
+                                for="specialization">
+                                Specialisation
+                            </label>
+
+                            <input
+                                id="specialization"
+                                name="specialization"
+                                required
+                                class="focus-ring w-full rounded-xl border border-slate-300 px-3 py-2.5"
+                                type="text"
+                                placeholder="e.g. Artificial Intelligence">
+
+                        </div>
+
+
+                        <div class="sm:col-span-2">
+
+                            <label
+                                class="block text-sm font-semibold mb-2"
+                                for="qualification">
+                                Qualifications
+                            </label>
+
+                            <input
+                                id="qualification"
+                                name="qualification"
+                                required
+                                class="focus-ring w-full rounded-xl border border-slate-300 px-3 py-2.5"
+                                type="text"
+                                placeholder="e.g. PhD | M.Tech | B.Tech">
+
+                            <p class="text-xs text-slate-500 mt-2">
+                                Separate multiple qualifications using the | symbol.
+                            </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-semibold mb-2"
+                                for="joining_date">
+                                Joining Date
+                            </label>
+
+                            <input
+                                id="joining_date"
+                                name="joining_date"
+                                required
+                                class="focus-ring w-full rounded-xl border border-slate-300 px-3 py-2.5"
+                                type="date">
+
+                        </div>
+
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-semibold mb-2"
+                                for="experience_years">
+                                Experience (Years)
+                            </label>
+
+                            <input
+                                id="experience_years"
+                                name="experience_years"
+                                required
+                                min="0"
+                                max="70"
+                                step="0.5"
+                                class="focus-ring w-full rounded-xl border border-slate-300 px-3 py-2.5"
+                                type="number"
+                                placeholder="e.g. 5">
+
+                        </div>
+
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-semibold mb-2"
+                                for="email">
+                                Email
+                            </label>
+
+                            <input
+                                id="email"
+                                name="email"
+                                required
+                                class="focus-ring w-full rounded-xl border border-slate-300 px-3 py-2.5"
+                                type="email"
+                                placeholder="faculty@example.com">
+
+                        </div>
+
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-semibold mb-2"
+                                for="phone">
+                                Phone
+                            </label>
+
+                            <input
+                                id="phone"
+                                name="phone"
+                                required
+                                class="focus-ring w-full rounded-xl border border-slate-300 px-3 py-2.5"
+                                type="tel"
+                                placeholder="+91 9876543210">
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="flex flex-wrap gap-3 mt-7">
+
+                        <button
+                            id="save-faculty"
+                            type="submit"
+                            class="canva-button focus-ring rounded-xl px-5 py-3 font-bold inline-flex items-center gap-2">
+
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            Save Faculty
+
+                        </button>
+
+
+                        <button
+                            id="cancel-edit"
+                            type="button"
+                            class="bg-slate-100 hover:bg-slate-200 text-slate-700 focus-ring rounded-xl px-5 py-3 font-semibold">
+
+                            Cancel
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= REPORTS ================= -->
+
+        <section id="reports-view" class="view">
+
+            <p class="uppercase tracking-[0.16em] text-xs font-bold text-teal-700">
+                Analytics
+            </p>
+
+            <h2 class="display-font text-slate-900 text-3xl mt-1">
+                Faculty Reports
+            </h2>
+
+            <p class="text-slate-600 mt-2">
+                Overview of faculty departments, qualifications, designations and experience.
+            </p>
+
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-7">
+
+                <article class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+
+                    <p class="text-sm font-semibold">
+                        Total Faculty
+                    </p>
+
+                    <p
+                        id="metric-total"
+                        class="text-3xl font-bold mt-2">
+                        0
+                    </p>
+
+                </article>
+
+
+                <article class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+
+                    <p class="text-sm font-semibold">
+                        Departments
+                    </p>
+
+                    <p
+                        id="metric-departments"
+                        class="text-3xl font-bold mt-2">
+                        0
+                    </p>
+
+                </article>
+
+
+                <article class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+
+                    <p class="text-sm font-semibold">
+                        Qualifications
+                    </p>
+
+                    <p
+                        id="metric-qualifications"
+                        class="text-3xl font-bold mt-2">
+                        0
+                    </p>
+
+                </article>
+
+
+                <article class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+
+                    <p class="text-sm font-semibold">
+                        Avg. Experience
+                    </p>
+
+                    <p
+                        id="metric-experience"
+                        class="text-3xl font-bold mt-2">
+                        0 yrs
+                    </p>
+
+                </article>
+
+            </div>
+
+
+            <div class="grid lg:grid-cols-2 gap-6 mt-6">
+
+                <article class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+
+                    <h3 class="display-font text-slate-900 text-xl">
+                        Faculty by Department
+                    </h3>
+
+                    <div
+                        id="department-chart"
+                        class="mt-5 space-y-4">
+                    </div>
+
+                </article>
+
+
+                <article class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+
+                    <h3 class="display-font text-slate-900 text-xl">
+                        Qualifications
+                    </h3>
+
+                    <div
+                        id="qualification-chart"
+                        class="mt-5 space-y-4">
+                    </div>
+
+                </article>
+
+
+                <article class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+
+                    <h3 class="display-font text-slate-900 text-xl">
+                        Designations
+                    </h3>
+
+                    <div
+                        id="designation-chart"
+                        class="mt-5 space-y-4">
+                    </div>
+
+                </article>
+
+
+                <article class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+
+                    <h3 class="display-font text-slate-900 text-xl">
+                        Experience Distribution
+                    </h3>
+
+                    <div
+                        id="experience-chart"
+                        class="mt-5 space-y-4">
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= ER DESIGN ================= -->
+
+        <section id="er-design-view" class="view">
+
+            <p class="uppercase tracking-[0.16em] text-xs font-bold text-teal-700">
+                Database Design
+            </p>
+
+            <h2 class="display-font text-slate-900 text-3xl mt-1">
+                Entity Relationship Design
+            </h2>
+
+            <p class="text-slate-600 mt-2 max-w-3xl">
+                The database design shows the relationship between faculty members
+                and their qualifications.
+            </p>
+
+
+            <article class="bg-white mt-7 rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+
+                <div class="grid md:grid-cols-[1fr_auto_1fr] items-center gap-5">
+
+                    <!-- FACULTY ENTITY -->
+
+                    <div class="er-node rounded-xl p-5">
+
+                        <h3 class="font-bold text-lg">
+                            Faculty
+                        </h3>
+
+                        <ul class="text-sm text-slate-600 mt-3 space-y-1">
+
+                            <li>faculty_id (PK)</li>
+                            <li>name</li>
+                            <li>department_id (FK)</li>
+                            <li>designation</li>
+                            <li>specialization</li>
+                            <li>joining_date</li>
+                            <li>experience_years</li>
+
+                        </ul>
+
+                    </div>
+
+
+                    <!-- RELATIONSHIP -->
+
+                    <div class="text-center text-teal-700">
+
+                        <div class="font-bold text-xl">
+                            1 ─── ∞
+                        </div>
+
+                        <p class="text-xs font-semibold mt-1">
+                            HAS QUALIFICATIONS
+                        </p>
+
+                    </div>
+
+
+                    <!-- QUALIFICATION ENTITY -->
+
+                    <div class="er-node rounded-xl p-5">
+
+                        <h3 class="font-bold text-lg">
+                            Qualification
+                        </h3>
+
+                        <ul class="text-sm text-slate-600 mt-3 space-y-1">
+
+                            <li>qualification_id (PK)</li>
+                            <li>faculty_id (FK)</li>
+                            <li>degree</li>
+                            <li>specialisation</li>
+                            <li>university</li>
+                            <li>year_awarded</li>
+
+                        </ul>
+
+                    </div>
+
+                </div>
+
+
+                <div class="bg-teal-50 rounded-xl p-5 mt-7">
+
+                    <h3 class="font-bold">
+                        Database Design Decision
+                    </h3>
+
+                    <p class="mt-2 leading-relaxed text-slate-700">
+                        A faculty member can have multiple qualifications.
+                        Therefore, Faculty and Qualification have a
+                        one-to-many relationship. The faculty ID is stored
+                        as a foreign key in the Qualification table.
+                    </p>
+
+                </div>
+
+            </article>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+
+<script>
+
+    /* =========================================================
+       FACULTY DATA
+       ========================================================= */
+
+    let facultyData = [];
+    let selectedId = null;
+    let editingId = null;
+
+
+    /* =========================================================
+       ELEMENT HELPER
+       ========================================================= */
+
+    const $ = (id) => document.getElementById(id);
+
+
+    /* =========================================================
+       LOCAL STORAGE
+       ========================================================= */
+
+    function saveData() {
+        localStorage.setItem(
+            "facultyData",
+            JSON.stringify(facultyData)
+        );
+    }
+
+
+    function loadData() {
+
+        const savedData =
+            localStorage.getItem("facultyData");
+
+        if (savedData) {
+
+            facultyData =
+                JSON.parse(savedData);
+
+        } else {
+
+            facultyData = [
+
+                {
+                    id: generateId(),
+                    name: "Dr. Ananya Rao",
+                    department: "Computer Science",
+                    designation: "Professor",
+                    specialization: "Artificial Intelligence",
+                    qualification: "PhD | M.Tech",
+                    joining_date: "2018-06-15",
+                    experience_years: 12,
+                    email: "ananya.rao@example.com",
+                    phone: "+91 9876543210"
+                },
+
+                {
+                    id: generateId(),
+                    name: "Dr. Rahul Sharma",
+                    department: "Information Science",
+                    designation: "Associate Professor",
+                    specialization: "Data Science",
+                    qualification: "PhD | M.Tech | B.Tech",
+                    joining_date: "2020-07-10",
+                    experience_years: 9,
+                    email: "rahul.sharma@example.com",
+                    phone: "+91 9876543211"
+                },
+
+                {
+                    id: generateId(),
+                    name: "Prof. Sneha Nair",
+                    department: "Electronics",
+                    designation: "Assistant Professor",
+                    specialization: "Embedded Systems",
+                    qualification: "M.Tech | B.Tech",
+                    joining_date: "2022-08-01",
+                    experience_years: 6,
+                    email: "sneha.nair@example.com",
+                    phone: "+91 9876543212"
+                },
+
+                {
+                    id: generateId(),
+                    name: "Dr. Vikram Shetty",
+                    department: "Mechanical Engineering",
+                    designation: "Professor",
+                    specialization: "Thermal Engineering",
+                    qualification: "PhD | M.Tech",
+                    joining_date: "2015-06-20",
+                    experience_years: 18,
+                    email: "vikram.shetty@example.com",
+                    phone: "+91 9876543213"
+                }
+
+            ];
+
+            saveData();
+        }
+
+        renderAll();
+    }
+
+
+    function generateId() {
+
+        return Date.now().toString() +
+            Math.random().toString(36).substring(2, 8);
+
+    }
+
+
+    /* =========================================================
+       STATUS MESSAGE
+       ========================================================= */
+
+    function showStatus(message, type = "success") {
+
+        const box = $("status-message");
+
+        box.className =
+            "status-message show mb-6 items-center gap-3 rounded-xl border px-4 py-3 text-sm " +
+            (type === "error"
+                ? "border-red-200 bg-red-50 text-red-800"
+                : "border-teal-200 bg-teal-50 text-teal-800");
+
+        box.innerHTML = `
+            <i data-lucide="${
+                type === "error"
+                    ? "circle-alert"
+                    : "circle-check"
+            }" class="w-5 h-5"></i>
+
+            <span>${message}</span>
+        `;
+
+        lucide.createIcons();
+
+        setTimeout(() => {
+            box.classList.remove("show");
+        }, 3000);
+    }
+
+
+    /* =========================================================
+       VIEW SWITCHING
+       ========================================================= */
+
+    function switchView(viewName) {
+
+        document
+            .querySelectorAll(".view")
+            .forEach(view =>
+                view.classList.remove("active")
+            );
+
+        document
+            .querySelectorAll(".nav-tab")
+            .forEach(tab =>
+                tab.classList.toggle(
+                    "active",
+                    tab.dataset.view === viewName
+                )
+            );
+
+        $(viewName + "-view")
+            .classList.add("active");
+
+    }
+
+
+    /* =========================================================
+       QUALIFICATIONS
+       ========================================================= */
+
+    function qualifications(value) {
+
+        return String(value || "")
+            .split("|")
+            .map(item => item.trim())
+            .filter(Boolean);
+
+    }
+
+
+    /* =========================================================
+       FILTERS
+       ========================================================= */
+
+    function populateFilters() {
+
+        const currentDepartment =
+            $("department-filter").value;
+
+        const currentDesignation =
+            $("designation-filter").value;
+
+
+        const departments = [
+            ...new Set(
+                facultyData
+                    .map(item => item.department)
+                    .filter(Boolean)
+            )
+        ].sort();
+
+
+        const designations = [
+            ...new Set(
+                facultyData
+                    .map(item => item.designation)
+                    .filter(Boolean)
+            )
+        ].sort();
+
+
+        $("department-filter").innerHTML =
+            `<option value="">All departments</option>` +
+            departments
+                .map(dept =>
+                    `<option value="${dept}">
+                        ${dept}
+                    </option>`
+                )
+                .join("");
+
+
+        $("designation-filter").innerHTML =
+            `<option value="">All designations</option>` +
+            designations
+                .map(designation =>
+                    `<option value="${designation}">
+                        ${designation}
+                    </option>`
+                )
+                .join("");
+
+
+        if (departments.includes(currentDepartment)) {
+            $("department-filter").value =
+                currentDepartment;
+        }
+
+
+        if (designations.includes(currentDesignation)) {
+            $("designation-filter").value =
+                currentDesignation;
+        }
+
+    }
+
+
+    function filteredFaculty() {
+
+        const search =
+            $("faculty-search")
+                .value
+                .trim()
+                .toLowerCase();
+
+
+        const department =
+            $("department-filter").value;
+
+
+        const designation =
+            $("designation-filter").value;
+
+
+        return facultyData.filter(item => {
+
+            const text = [
+
+                item.name,
+                item.department,
+                item.designation,
+                item.specialization,
+                item.qualification
+
+            ]
+                .join(" ")
+                .toLowerCase();
+
+
+            return (
+
+                (!search || text.includes(search)) &&
+
+                (!department ||
+                    item.department === department) &&
+
+                (!designation ||
+                    item.designation === designation)
+
+            );
+
+        });
+
+    }
+
+
+    /* =========================================================
+       DIRECTORY
+       ========================================================= */
+
+    function renderDirectory() {
+
+        const list = $("faculty-list");
+
+        const filtered =
+            filteredFaculty();
+
+
+        $("faculty-count").textContent =
+            `${filtered.length} of ${facultyData.length} faculty profiles`;
+
+
+        $("directory-empty")
+            .classList.toggle(
+                "hidden",
+                filtered.length !== 0
+            );
+
+
+        list.innerHTML = "";
+
+
+        filtered.forEach(item => {
+
+            const card =
+                document.createElement("button");
+
+
+            card.type = "button";
+
+            card.className =
+                "profile-card text-left rounded-2xl border border-slate-200 p-5 shadow-sm bg-white focus-ring";
+
+
+            if (item.id === selectedId) {
+                card.classList.add("selected");
+            }
+
+
+            card.innerHTML = `
+
+                <div class="flex justify-between gap-3">
+
+                    <div>
+
+                        <p class="font-bold text-slate-900">
+                            ${item.name}
+                        </p>
+
+                        <p class="text-sm text-slate-600 mt-1">
+                            ${item.designation}
+                            ·
+                            ${item.department}
+                        </p>
+
+                    </div>
+
+                    <i
+                        data-lucide="chevron-right"
+                        class="w-5 h-5 text-teal-700 shrink-0">
+                    </i>
+
+                </div>
+
+
+                <div class="border-t border-slate-100 my-4"></div>
+
+
+                <p class="text-sm text-slate-600">
+                    ${item.specialization}
+                </p>
+
+
+                <p class="text-sm font-semibold text-teal-700 mt-3">
+                    ${item.experience_years}
+                    years of experience
+                </p>
+
+            `;
+
+
+            card.addEventListener(
+                "click",
+                () => selectFaculty(item.id)
+            );
+
+
+            list.appendChild(card);
+
+        });
+
+
+        lucide.createIcons();
+
+    }
+
+
+    /* =========================================================
+       SELECT FACULTY
+       ========================================================= */
+
+    function selectFaculty(id) {
+
+        selectedId = id;
+
+
+        const faculty =
+            facultyData.find(
+                item => item.id === id
+            );
+
+
+        if (!faculty) return;
+
+
+        $("profile-empty")
+            .classList.add("hidden");
+
+
+        $("profile-detail")
+            .classList.remove("hidden");
+
+
+        $("profile-name").textContent =
+            faculty.name;
+
+
+        $("profile-role").textContent =
+            `${faculty.designation} · ${faculty.department}`;
+
+
+        $("profile-department").textContent =
+            faculty.department;
+
+
+        $("profile-specialization").textContent =
+            faculty.specialization;
+
+
+        $("profile-qualifications").innerHTML =
+            qualifications(
+                faculty.qualification
+            )
+            .map(q =>
+                `<span class="qual-pill rounded-full px-2.5 py-1 text-xs font-bold">
+                    ${q}
+                </span>`
+            )
+            .join("");
+
+
+        $("profile-joining").textContent =
+            new Date(
+                faculty.joining_date + "T00:00:00"
+            ).toLocaleDateString(
+                "en-IN",
+                {
+                    month: "short",
+                    year: "numeric"
+                }
+            );
+
+
+        $("profile-experience").textContent =
+            `${faculty.experience_years} years`;
+
+
+        $("profile-contact").textContent =
+            `${faculty.email} · ${faculty.phone}`;
+
+
+        renderDirectory();
+
+    }
+
+
+    /* =========================================================
+       REPORT HELPERS
+       ========================================================= */
+
+    function tally(items, extractor) {
+
+        return items.reduce(
+            (result, item) => {
+
+                const key =
+                    extractor(item);
+
+
+                result[key] =
+                    (result[key] || 0) + 1;
+
+
+                return result;
+
+            },
+            {}
+        );
+
+    }
+
+
+    function renderBars(
+        targetId,
+        counts,
+        colorClass = ""
+    ) {
+
+        const target =
+            $(targetId);
+
+
+        const entries =
+            Object.entries(counts)
+                .sort((a, b) => b[1] - a[1]);
+
+
+        if (!entries.length) {
+
+            target.innerHTML =
+                `<p class="text-sm text-slate-500">
+                    No data available yet.
+                </p>`;
+
+            return;
+        }
+
+
+        const max =
+            Math.max(
+                ...entries.map(entry => entry[1]),
+                1
+            );
+
+
+        target.innerHTML =
+            entries.map(
+                ([label, count]) => `
+
+                    <div>
+
+                        <div class="flex justify-between gap-3 text-sm mb-1.5">
+
+                            <span class="font-semibold text-slate-700">
+                                ${label}
+                            </span>
+
+                            <span class="text-slate-500">
+                                ${count}
+                            </span>
+
+                        </div>
+
+
+                        <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+
+                            <div
+                                class="metric-bar ${colorClass}"
+                                style="width:${(count / max) * 100}%">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                `
+            ).join("");
+
+    }
+
+
+    /* =========================================================
+       REPORTS
+       ========================================================= */
+
+    function renderReports() {
+
+        const departmentCounts =
+            tally(
+                facultyData,
+                item =>
+                    item.department ||
+                    "Unspecified"
+            );
+
+
+        const designationCounts =
+            tally(
+                facultyData,
+                item =>
+                    item.designation ||
+                    "Unspecified"
+            );
+
+
+        const qualificationCounts = {};
+
+
+        facultyData.forEach(item => {
+
+            qualifications(
+                item.qualification
+            ).forEach(q => {
+
+                qualificationCounts[q] =
+                    (qualificationCounts[q] || 0) + 1;
+
+            });
+
+        });
+
+
+        const experienceCounts = {
+
+            "0–5 years": 0,
+            "6–10 years": 0,
+            "11–20 years": 0,
+            "21+ years": 0
+
+        };
+
+
+        facultyData.forEach(item => {
+
+            const years =
+                Number(
+                    item.experience_years
+                ) || 0;
+
+
+            if (years <= 5) {
+
+                experienceCounts["0–5 years"]++;
+
+            } else if (years <= 10) {
+
+                experienceCounts["6–10 years"]++;
+
+            } else if (years <= 20) {
+
+                experienceCounts["11–20 years"]++;
+
+            } else {
+
+                experienceCounts["21+ years"]++;
+
+            }
+
+        });
+
+
+        $("metric-total").textContent =
+            facultyData.length;
+
+
+        $("metric-departments").textContent =
+            Object.keys(
+                departmentCounts
+            ).length;
+
+
+        $("metric-qualifications").textContent =
+            Object.keys(
+                qualificationCounts
+            ).length;
+
+
+        const average =
+            facultyData.length
+                ? facultyData.reduce(
+                    (sum, item) =>
+                        sum +
+                        (Number(
+                            item.experience_years
+                        ) || 0),
+                    0
+                ) / facultyData.length
+                : 0;
+
+
+        $("metric-experience").textContent =
+            `${average.toFixed(1)} yrs`;
+
+
+        renderBars(
+            "department-chart",
+            departmentCounts
+        );
+
+
+        renderBars(
+            "qualification-chart",
+            qualificationCounts,
+            "gold"
+        );
+
+
+        renderBars(
+            "designation-chart",
+            designationCounts,
+            "navy"
+        );
+
+
+        renderBars(
+            "experience-chart",
+            experienceCounts,
+            "rose"
+        );
+
+    }
+
+
+    /* =========================================================
+       RENDER EVERYTHING
+       ========================================================= */
+
+    function renderAll() {
+
+        populateFilters();
+
+        renderDirectory();
+
+        renderReports();
+
+
+        if (
+            selectedId &&
+            facultyData.some(
+                item => item.id === selectedId
+            )
+        ) {
+
+            selectFaculty(selectedId);
+
+        }
+
+    }
+
+
+    /* =========================================================
+       EDIT FACULTY
+       ========================================================= */
+function beginEdit(id) {
+
+        const faculty =
+            facultyData.find(
+                item => item.id === id
+            );
+
+
+        if (!faculty) return;
+
+
+        editingId = id;
+
+
+        $("name").value =
+            faculty.name;
+
+
+        $("department").value =
+            faculty.department;
+
+
+        $("designation").value =
+            faculty.designation;
+
+
+        $("specialization").value =
+            faculty.specialization;
+
+
+        $("qualification").value =
+            faculty.qualification;
+
+
+        $("joining_date").value =
+            faculty.joining_date;
+
+
+        $("experience_years").value =
+            faculty.experience_years;
+
+
+        $("email").value =
+            faculty.email;
+
+
+        $("phone").value =
+            faculty.phone;
+
+
+        $("form-title").textContent =
+            "Update Faculty Profile";
+
+
+        $("save-faculty").innerHTML = `
+            <i data-lucide="save" class="w-4 h-4"></i>
+            Update Faculty
+        `;
+
+
+        lucide.createIcons();
+
+
+        switchView("form");
+
+        $("name").focus();
+
+    }
+
+
+
+
+    /* =========================================================
+       RESET FORM
+       ========================================================= */
+
+    function resetForm() {
+
+        editingId = null;
+
+        $("faculty-form").reset();
+
+        $("form-title").textContent =
+            "Add Faculty Profile";
+
+
+        $("save-faculty").innerHTML = `
+            <i data-lucide="save" class="w-4 h-4"></i>
+            Save Faculty
+        `;
+
+
+        lucide.createIcons();
+
+    }
+
+
+    /* =========================================================
+       FORM SUBMIT
+       ========================================================= */
+
+    $("faculty-form")
+        .addEventListener(
+            "submit",
+            function(event) {
+
+                event.preventDefault();
+
+
+                const formData =
+                    new FormData(
+                        event.target
+                    );
+
+
+                const faculty = {
+
+                    name:
+                        formData.get("name").trim(),
+
+                    department:
+                        formData.get("department").trim(),
+
+                    designation:
+                        formData.get("designation").trim(),
+
+                    specialization:
+                        formData.get("specialization").trim(),
+
+                    qualification:
+                        qualifications(
+                            formData.get(
+                                "qualification"
+                            )
+                        ).join(" | "),
+
+                    joining_date:
+                        formData.get(
+                            "joining_date"
+                        ),
+
+                    experience_years:
+                        Number(
+                            formData.get(
+                                "experience_years"
+                            )
+                        ),
+
+                    email:
+                        formData.get("email").trim(),
+
+                    phone:
+                        formData.get("phone").trim()
+
+                };
+
+
+                /* EDIT */
+
+                if (editingId) {
+
+                    const index =
+                        facultyData.findIndex(
+                            item =>
+                                item.id ===
+                                editingId
+                        );
+
+
+                    if (index !== -1) {
+
+                        facultyData[index] = {
+
+                            ...facultyData[index],
+                            ...faculty
+
+                        };
+
+                    }
+
+
+                    selectedId =
+                        editingId;
+
+
+                    showStatus(
+                        "Faculty profile updated successfully."
+                    );
+
+                }
+
+
+                /* ADD */
+
+                else {
+
+                    faculty.id =
+                        generateId();
+
+
+                    facultyData.push(
+                        faculty
+                    );
+
+
+                    selectedId =
+                        faculty.id;
+
+
+                    showStatus(
+                        "Faculty profile added successfully."
+                    );
+
+                }
+
+
+                saveData();
+
+                renderAll();
+
+                resetForm();
+
+                switchView("directory");
+
+
+                selectFaculty(
+                    selectedId
+                );
+
+            }
+        );
+
+
+    /* =========================================================
+       NAVIGATION EVENTS
+       ========================================================= */
+
+    document
+        .querySelectorAll(".nav-tab")
+        .forEach(tab => {
+
+            tab.addEventListener(
+                "click",
+                () =>
+                    switchView(
+                        tab.dataset.view
+                    )
+            );
+
+        });
+
+
+    $("open-add")
+        .addEventListener(
+            "click",
+            () => {
+
+                resetForm();
+
+                switchView("form");
+
+            }
+        );
+
+
+    $("edit-selected")
+        .addEventListener(
+            "click",
+            () => {
+
+                if (selectedId) {
+
+                    beginEdit(
+                        selectedId
+                    );
+
+                }
+
+            }
+        );
+
+
+    $("cancel-edit")
+        .addEventListener(
+            "click",
+            () => {
+
+                resetForm();
+
+                switchView(
+                    "directory"
+                );
+
+            }
+        );
+
+
+    $("faculty-search")
+        .addEventListener(
+            "input",
+            renderDirectory
+        );
+
+
+    $("department-filter")
+        .addEventListener(
+            "change",
+            renderDirectory
+        );
+
+
+    $("designation-filter")
+        .addEventListener(
+            "change",
+            renderDirectory
+        );
+
+
+    /* =========================================================
+       START APPLICATION
+       ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+
+            lucide.createIcons();
+
+            loadData();
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
